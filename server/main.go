@@ -2,24 +2,30 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"net/http"
 
 	"github.com/awendland/whatdidmedicarepay.com/server/config"
 	"github.com/awendland/whatdidmedicarepay.com/server/routes"
+
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
+	// Config
+	e := echo.New()
 	config := config.ProvideConfig()
 
-	routes := routes.LoadRoutes(config)
+	// Middleware
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+	e.Use(middleware.BodyLimit("1M"))
 
-	addr := fmt.Sprintf(":%d", config.Port)
-	log.Printf("Listening on %s...\n", addr)
-	err := http.ListenAndServe(addr, routes)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// Routes
+	routes.LoadRoutes(e, config)
+
+	// Start server
+	addr := fmt.Sprintf(":%d", config.Env.Port)
+	e.Logger.Fatal(e.Start(addr))
 }

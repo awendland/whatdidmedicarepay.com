@@ -1,39 +1,26 @@
 package routes
 
 import (
-	"database/sql"
-	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/awendland/whatdidmedicarepay.com/server/config"
+	"github.com/awendland/whatdidmedicarepay.com/server/repositories"
+	"github.com/labstack/echo/v4"
 )
 
 type ApiSearchResponse struct {
 	Query   string
-	Results []string
+	Results []repositories.ProcedureProviderEntry
 }
 
-func NewApiSearchHandler(config *config.Config) http.HandlerFunc {
-	db, err := sql.Open("sqlite3", config.DbPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-	return func(w http.ResponseWriter, r *http.Request) {
-		p := r.URL.Query()
-		sql := p["sql"][0]
-		w.Header().Set("content-type", "application/json")
+func NewApiSearchHandler(config *config.Config) echo.HandlerFunc {
+	return func(c echo.Context) (err error) {
+		sql := c.Param("sql")
+
 		resp := ApiSearchResponse{
 			Query:   sql,
 			Results: nil,
 		}
-		jsonstr, err := json.MarshalIndent(resp, "", "  ")
-		if err != nil {
-			log.Print(err)
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		w.Write(jsonstr)
+		return c.JSON(http.StatusOK, resp)
 	}
 }
