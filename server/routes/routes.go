@@ -17,5 +17,5 @@ func LoadRoutes(e *echo.Echo, config *config.Config) {
 
 	// API routes
 	apiRoutes := e.Group("/api")
-	apiRoutes.GET("/search", NewApiSearchHandler(config))
+	apiRoutes.GET("/search", NewAPISearchHandler(config))
 }
