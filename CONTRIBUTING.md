@@ -23,6 +23,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/
 - `client/` - TypeScript, see `client/package.json` for the language version
 - `data/` - Python, see `data/.python-version` for the language version
 - `server/` - Go, see `server/go.mod` for the language version
+- `load-test/` - k6's JavaScript ES2015/ES6 variant, see [the k6 documentation](https://k6.io/docs/)
 
 ## License
 
