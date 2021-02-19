@@ -1,6 +1,8 @@
 package config
 
 import (
+	"database/sql"
+	"fmt"
 	"log"
 
 	"github.com/spf13/viper"
@@ -19,6 +21,7 @@ type EnvConfig struct {
 // provided configuration details from the environment.
 type Config struct {
 	Env *EnvConfig
+	DB  *sql.DB
 }
 
 // ProvideConfig creates a Config struct from environment variables and various
@@ -28,11 +31,26 @@ func ProvideConfig() *Config {
 	// Load env config
 	viper.SetDefault("Port", 3000)
 	viper.SetDefault("StaticDir", "./static")
+	viper.SetDefault("DbPath", "data.db")
+	viper.SetDefault("DbParams", "cache=shared&immutable=true&mode=ro&nolock=true")
 	viper.AutomaticEnv()
 	ec := EnvConfig{}
 	err := viper.Unmarshal(&ec)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Instantiate dynamic components
+	db, err := sql.Open("sqlite3", fmt.Sprintf("file:%s?%s", ec.DbPath, ec.DbParams))
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Ensure DB is accessible
+	_, err = db.Query("SELECT 1")
+	if err != nil {
+		log.Fatal(err)
+	}
+	c := Config{Env: &ec, DB: db}
+
 	return &c
 }
