@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/awendland/whatdidmedicarepay.com/server/config"
 	"github.com/awendland/whatdidmedicarepay.com/server/routes"
+	"golang.org/x/time/rate"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -20,7 +22,13 @@ func main() {
 	// Middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	e.Use(middleware.BodyLimit("1M"))
+	e.Use(middleware.BodyLimit(config.Env.RequestBodyLimit))
+	e.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{
+		Timeout: time.Duration(config.Env.RequestTimeoutSec) * time.Second,
+	}))
+	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(config.Env.RequestRateLimitPerSec))))
+	// TODO e.Use(middleware.Gzip())
+	// TODO autotls
 
 	// Routes
 	routes.LoadRoutes(e, config)
