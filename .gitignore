@@ -1,5 +1,8 @@
 ### Project Specific ###
 
+*.db
+.tmp/
+
 # Created by https://www.toptal.com/developers/gitignore/api/macos,windows,linux,vim,vscode,intellij
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,windows,linux,vim,vscode,intellij
 
