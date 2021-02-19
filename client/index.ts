@@ -1,5 +1,5 @@
-export {}
+export {};
 
 window.addEventListener("load", () => {
-    document.write("<pre>Test</pre>")
-})
+  document.write("<pre>Test</pre>");
+});
