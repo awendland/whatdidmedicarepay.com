@@ -46,35 +46,35 @@ type PUPDEntry struct {
 func SearchPUPDEntries(ctx context.Context, config *config.Config, query string, limit int) ([]PUPDEntry, error) {
 	rows, err := config.DB.QueryContext(ctx, `
 	SELECT
-		puf_2017."npi",
-		puf_2017."nppes_provider_last_org_name",
-		puf_2017."nppes_provider_first_name",
-		puf_2017."nppes_provider_mi",
-		puf_2017."nppes_credentials",
-		puf_2017."nppes_provider_gender",
-		puf_2017."nppes_entity_code",
-		puf_2017."nppes_provider_street1",
-		puf_2017."nppes_provider_street2",
-		puf_2017."nppes_provider_city",
-		puf_2017."nppes_provider_zip",
-		puf_2017."nppes_provider_state",
-		puf_2017."nppes_provider_country",
-		puf_2017."provider_type",
-		puf_2017."medicare_participation_indicator",
-		puf_2017."place_of_service",
-		puf_2017."hcpcs_code",
-		puf_2017."hcpcs_description",
-		puf_2017."hcpcs_drug_indicator",
-		puf_2017."line_srvc_cnt",
-		puf_2017."bene_unique_cnt",
-		puf_2017."bene_day_srvc_cnt",
-		puf_2017."average_Medicare_allowed_amt",
-		puf_2017."average_submitted_chrg_amt",
-		puf_2017."average_Medicare_payment_amt",
-		puf_2017."average_Medicare_standard_amt"
-	FROM puf_2017
-	JOIN data ON data.rowid = puf_2017.rowid
-	WHERE data MATCH :query
+		PUP_data."npi",
+		PUP_data."nppes_provider_last_org_name",
+		PUP_data."nppes_provider_first_name",
+		PUP_data."nppes_provider_mi",
+		PUP_data."nppes_credentials",
+		PUP_data."nppes_provider_gender",
+		PUP_data."nppes_entity_code",
+		PUP_data."nppes_provider_street1",
+		PUP_data."nppes_provider_street2",
+		PUP_data."nppes_provider_city",
+		PUP_data."nppes_provider_zip",
+		PUP_data."nppes_provider_state",
+		PUP_data."nppes_provider_country",
+		PUP_data."provider_type",
+		PUP_data."medicare_participation_indicator",
+		PUP_data."place_of_service",
+		PUP_data."hcpcs_code",
+		PUP_data."hcpcs_description",
+		PUP_data."hcpcs_drug_indicator",
+		PUP_data."line_srvc_cnt",
+		PUP_data."bene_unique_cnt",
+		PUP_data."bene_day_srvc_cnt",
+		PUP_data."average_Medicare_allowed_amt",
+		PUP_data."average_submitted_chrg_amt",
+		PUP_data."average_Medicare_payment_amt",
+		PUP_data."average_Medicare_standard_amt"
+	FROM PUP_data
+	JOIN PUP_data_fts ON PUP_data_fts.rowid = PUP_data.rowid
+	WHERE PUP_data_fts MATCH :query
 	LIMIT :limit
 	`, sql.Named("query", query), sql.Named("limit", limit))
 	if err != nil {

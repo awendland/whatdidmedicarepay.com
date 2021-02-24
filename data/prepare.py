@@ -100,15 +100,22 @@ PRAGMA locking_mode = EXCLUSIVE;
     sqlite3_import = f"""{sqlite3_perf_header}
 .mode csv
 .separator '\t'
-.import {tmp_csv_path} puf_2017
+.import {tmp_csv_path} PUP_data
 .mode list
-SELECT "Imported " || COUNT(*) || " records" FROM puf_2017;
+SELECT "Imported " || COUNT(*) || " records" FROM PUP_data;
 """
+    # Reference: datasette's handling of full-text search in sqlite https://docs.datasette.io/en/latest/full_text_search.html
     sqlite3_schema = f"""{sqlite3_perf_header}
--- CREATE UNIQUE INDEX index_npi ON puf_2017 (npi, hcpcs_code, place_of_service);
+-- CREATE UNIQUE INDEX index_npi ON PUP_data (npi, hcpcs_code, place_of_service);
 
-CREATE VIRTUAL TABLE data USING fts4(rowid, npi, hcpcs_code, hcpcs_description, name, address);
-INSERT INTO data
+CREATE VIRTUAL TABLE PUP_data_fts USING fts5(
+    npi,
+    hcpcs_code,
+    hcpcs_description,
+    name,
+    address
+);
+INSERT INTO PUP_data_fts (rowid, npi, hcpcs_code, hcpcs_description, name, address)
     SELECT
         rowid,
         npi,
@@ -116,11 +123,11 @@ INSERT INTO data
         hcpcs_description,
         nppes_provider_first_name || ' ' || nppes_provider_mi || ' ' || nppes_provider_last_org_name as name,
         nppes_provider_street1 || ' ' || nppes_provider_street2 || ' ' || nppes_provider_city || ' ' || nppes_provider_zip || ' ' || nppes_provider_state || ' ' || nppes_provider_country as address
-    FROM puf_2017
+    FROM PUP_data
 ;
 """
     sqlite3_optimize = f"""{sqlite3_perf_header}
-INSERT INTO data(data) VALUES('optimize');
+INSERT INTO PUP_data_fts(PUP_data_fts) VALUES('optimize');
 VACUUM;
 """
 
