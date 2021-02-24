@@ -26,7 +26,10 @@ func main() {
 	e.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{
 		Timeout: time.Duration(config.Env.RequestTimeoutSec) * time.Second,
 	}))
-	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(config.Env.RequestRateLimitPerSec))))
+	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStoreWithConfig(middleware.RateLimiterMemoryStoreConfig{
+		Rate:  rate.Limit(config.Env.RequestRateLimitPerSec),
+		Burst: config.Env.RequestBurstLimitPerSec,
+	})))
 	// TODO e.Use(middleware.Gzip())
 	// TODO autotls
 

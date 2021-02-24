@@ -11,13 +11,14 @@ import (
 // EnvConfig contains all configuration parameters for the server that can
 // be provided by the environment.
 type EnvConfig struct {
-	Port                   int
-	StaticDir              string
-	RequestBodyLimit       string
-	RequestTimeoutSec      int
-	RequestRateLimitPerSec int
-	DbPath                 string
-	DbParams               string
+	Port                    int
+	StaticDir               string
+	RequestBodyLimit        string
+	RequestTimeoutSec       int
+	RequestRateLimitPerSec  int
+	RequestBurstLimitPerSec int
+	DbPath                  string
+	DbParams                string
 }
 
 // Config contains dynamic configuration items (like the DB pool) as well as
@@ -37,6 +38,7 @@ func ProvideConfig() *Config {
 	viper.SetDefault("RequestBodyLimit", "1M")
 	viper.SetDefault("RequestTimeoutSec", 2)
 	viper.SetDefault("RequestRateLimitPerSec", 1)
+	viper.SetDefault("RequestBurstLimitPerSec", 10)
 	viper.SetDefault("DbPath", "data.db")
 	viper.SetDefault("DbParams", "cache=shared&immutable=true&mode=ro&nolock=true")
 	viper.AutomaticEnv()
