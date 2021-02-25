@@ -1,6 +1,7 @@
 {
+  "extends": "@tsconfig/svelte/tsconfig.json",
   // Based on https://github.com/snowpackjs/snowpack/blob/main/create-snowpack-app/app-template-blank-typescript/tsconfig.json
-  "include": [".", "types"],
+  "include": ["src", "types"],
   "compilerOptions": {
     "module": "esnext",
     "target": "esnext",

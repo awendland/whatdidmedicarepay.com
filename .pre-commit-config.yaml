@@ -16,6 +16,8 @@ repos:
     rev: v2.1.2
     hooks:
       - id: prettier
+        additional_dependencies:
+          - "prettier-plugin-svelte@v2.1.6"
 
   - repo: git://github.com/antonbabenko/pre-commit-terraform
     rev: v1.31.0

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="You got a procedure done by a doctor and they sent you a ridiculous bill. What would Medicare pay?"
+    />
+    <title>What Did Medicare Pay?</title>
+  </head>
+  <body class="h-screen bg-green-100">
+    <noscript>
+      This app usually requires JavaScript to run. You can try using this
+      non-JavaScript version for simple queries:
+
+      <form action="/api/search" method="GET">
+        <input name="query" />
+        <input hidden name="html" value="true" />
+        <button type="submit">Search</button>
+      </form>
+    </noscript>
+    <script type="module" src="/dist/index.js"></script>
+  </body>
+</html>
