@@ -1,5 +1,6 @@
 // Snowpack Configuration File
 // See all supported options: https://www.snowpack.dev/reference/configuration
+// svelte + typescript + tailwind support based on https://github.com/GarrettCannon/snowpack-svelte-ts-tw
 
 /** @type {import("snowpack").SnowpackUserConfig } */
 module.exports = {
