@@ -10,6 +10,7 @@ import (
 // PUPDEntry is a model representing rows in the Provider Utilization and Payment Data
 // Public Use File provided by CMS.
 type PUPDEntry struct {
+	RowID                          int64
 	NPI                            string
 	NPPESProviderLastOrgName       string
 	NPPESProviderFirstName         string
@@ -46,6 +47,7 @@ type PUPDEntry struct {
 func SearchPUPDEntries(ctx context.Context, config *config.Config, query string, limit int) ([]PUPDEntry, error) {
 	rows, err := config.DB.QueryContext(ctx, `
 	SELECT
+		PUP_data."rowid",
 		PUP_data."npi",
 		PUP_data."nppes_provider_last_org_name",
 		PUP_data."nppes_provider_first_name",
@@ -84,6 +86,7 @@ func SearchPUPDEntries(ctx context.Context, config *config.Config, query string,
 	for rows.Next() {
 		var p PUPDEntry
 		if err = rows.Scan(
+			&p.RowID,
 			&p.NPI,
 			&p.NPPESProviderLastOrgName,
 			&p.NPPESProviderFirstName,

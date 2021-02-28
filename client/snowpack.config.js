@@ -2,6 +2,12 @@
 // See all supported options: https://www.snowpack.dev/reference/configuration
 // svelte + typescript + tailwind support based on https://github.com/GarrettCannon/snowpack-svelte-ts-tw
 
+const httpProxy = require("http-proxy");
+
+const apiProxy = httpProxy.createServer({
+  target: process.env.SNOWPACK_API_HOST || "http://localhost:3000",
+});
+
 /** @type {import("snowpack").SnowpackUserConfig } */
 module.exports = {
   mount: {
@@ -19,6 +25,10 @@ module.exports = {
   routes: [
     /* Enable an SPA Fallback in development: */
     // {"match": "routes", "src": ".*", "dest": "/index.html"},
+    {
+      src: "/api/.*",
+      dest: (req, res) => apiProxy.web(req, res),
+    },
   ],
   packageOptions: {
     /* ... */
