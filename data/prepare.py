@@ -100,14 +100,61 @@ PRAGMA locking_mode = EXCLUSIVE;
     sqlite3_import = f"""{sqlite3_perf_header}
 .mode csv
 .separator '\t'
-.import {tmp_csv_path} PUP_data
+.import {tmp_csv_path} imported_data
 .mode list
-SELECT "Imported " || COUNT(*) || " records" FROM PUP_data;
+SELECT "Imported " || COUNT(*) || " records" FROM imported_data;
 """
     # Reference: datasette's handling of full-text search in sqlite https://docs.datasette.io/en/latest/full_text_search.html
     sqlite3_schema = f"""{sqlite3_perf_header}
--- CREATE UNIQUE INDEX index_npi ON PUP_data (npi, hcpcs_code, place_of_service);
+-- Create main PUP_data table
+CREATE TABLE PUP_data AS
+    SELECT
+        -- rowid # assigned contiguously ascending values, starting with 1, in the order that they are returned by the SELECT statement
+        CAST(npi AS TEXT) as npi,
+        CAST(nppes_provider_last_org_name AS TEXT) as nppes_provider_last_org_name,
+        CAST(nppes_provider_first_name AS TEXT) as nppes_provider_first_name,
+        CAST(nppes_provider_mi AS TEXT) as nppes_provider_mi,
+        CAST(nppes_credentials AS TEXT) as nppes_credentials,
+        CAST(nppes_provider_gender AS TEXT) as nppes_provider_gender,
+        CAST(nppes_entity_code AS TEXT) as nppes_entity_code,
+        CAST(nppes_provider_street1 AS TEXT) as nppes_provider_street1,
+        CAST(nppes_provider_street2 AS TEXT) as nppes_provider_street2,
+        CAST(nppes_provider_city AS TEXT) as nppes_provider_city,
+        CAST(nppes_provider_zip AS TEXT) as nppes_provider_zip,
+        CAST(nppes_provider_state AS TEXT) as nppes_provider_state,
+        CAST(nppes_provider_country AS TEXT) as nppes_provider_country,
+        CAST(provider_type AS TEXT) as provider_type,
+        CAST(medicare_participation_indicator AS TEXT) as medicare_participation_indicator,
+        CAST(place_of_service AS TEXT) as place_of_service,
+        CAST(hcpcs_code AS TEXT) as hcpcs_code,
+        -- CAST(hcpcs_description AS TEXT) as hcpcs_description, # NOTE: removing this field to reduce DB size; use hcpcs table instead.
+        CAST(hcpcs_drug_indicator AS TEXT) as hcpcs_drug_indicator,
+        CAST(line_srvc_cnt AS NUMERIC) as line_srvc_cnt,
+        CAST(bene_unique_cnt AS NUMERIC) as bene_unique_cnt,
+        CAST(bene_day_srvc_cnt AS NUMERIC) as bene_day_srvc_cnt,
+        CAST(average_Medicare_allowed_amt AS REAL) as average_Medicare_allowed_amt,
+        CAST(average_submitted_chrg_amt AS REAL) as average_submitted_chrg_amt,
+        CAST(average_Medicare_payment_amt AS REAL) as average_Medicare_payment_amt,
+        CAST(average_Medicare_standard_amt AS REAL) as average_Medicare_standard_amt
+    FROM imported_data
+    WHERE npi != "0000000001"; -- copyright details are saved as a malformed first row
+;
 
+-- Create auxiliary hcpcs table
+CREATE TABLE hcpcs AS
+    SELECT
+        CAST(hcpcs_code AS TEXT) as code,
+        CAST(hcpcs_description AS TEXT) as description
+    FROM imported_data
+    GROUP BY hcpcs_code, hcpcs_description
+;
+CREATE INDEX index_hcpcs_code ON hcpcs(code);
+
+-- Drop transient import table
+DROP TABLE imported_data;
+"""
+    sqlite3_fts = f"""{sqlite3_perf_header}
+-- Create full-text search table
 CREATE VIRTUAL TABLE PUP_data_fts USING fts5(
     npi,
     hcpcs_code,
@@ -117,13 +164,14 @@ CREATE VIRTUAL TABLE PUP_data_fts USING fts5(
 );
 INSERT INTO PUP_data_fts (rowid, npi, hcpcs_code, hcpcs_description, name, address)
     SELECT
-        rowid,
-        npi,
-        hcpcs_code,
-        hcpcs_description,
-        nppes_provider_first_name || ' ' || nppes_provider_mi || ' ' || nppes_provider_last_org_name as name,
-        nppes_provider_street1 || ' ' || nppes_provider_street2 || ' ' || nppes_provider_city || ' ' || nppes_provider_zip || ' ' || nppes_provider_state || ' ' || nppes_provider_country as address
-    FROM PUP_data
+        p.rowid,
+        p.npi,
+        p.hcpcs_code,
+        h.description,
+        p.nppes_provider_first_name || ' ' || p.nppes_provider_mi || ' ' || p.nppes_provider_last_org_name as name,
+        p.nppes_provider_street1 || ' ' || p.nppes_provider_street2 || ' ' || p.nppes_provider_city || ' ' || p.nppes_provider_zip || ' ' || p.nppes_provider_state || ' ' || p.nppes_provider_country as address
+    FROM PUP_data AS p
+    INNER JOIN hcpcs AS h ON p.hcpcs_code = h.code
 ;
 """
     sqlite3_optimize = f"""{sqlite3_perf_header}
@@ -138,8 +186,11 @@ VACUUM;
     print("= Importing CSV records")
     subprocess.run(["sqlite3", path], input=sqlite3_import.encode(), check=True)
     print_db_size()
-    print("= Creating full-text search table")
+    print("= Transforming into structured schema")
     subprocess.run(["sqlite3", path], input=sqlite3_schema.encode(), check=True)
+    print_db_size()
+    print("= Creating full-text search table")
+    subprocess.run(["sqlite3", path], input=sqlite3_fts.encode(), check=True)
     print_db_size()
     if OPTIMIZE:
         print("= Optimizing DB using VACUUM and fts optimize")

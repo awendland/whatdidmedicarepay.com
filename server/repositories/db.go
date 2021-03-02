@@ -65,7 +65,7 @@ func SearchPUPDEntries(ctx context.Context, config *config.Config, query string,
 		PUP_data."medicare_participation_indicator",
 		PUP_data."place_of_service",
 		PUP_data."hcpcs_code",
-		PUP_data."hcpcs_description",
+		hcpcs."description",
 		PUP_data."hcpcs_drug_indicator",
 		PUP_data."line_srvc_cnt",
 		PUP_data."bene_unique_cnt",
@@ -74,8 +74,9 @@ func SearchPUPDEntries(ctx context.Context, config *config.Config, query string,
 		PUP_data."average_submitted_chrg_amt",
 		PUP_data."average_Medicare_payment_amt",
 		PUP_data."average_Medicare_standard_amt"
-	FROM PUP_data
-	JOIN PUP_data_fts ON PUP_data_fts.rowid = PUP_data.rowid
+	FROM PUP_data_fts
+	JOIN PUP_data ON PUP_data_fts.rowid = PUP_data.rowid
+	JOIN hcpcs ON PUP_data.hcpcs_code = hcpcs.code
 	WHERE PUP_data_fts MATCH :query
 	LIMIT :limit
 	`, sql.Named("query", query), sql.Named("limit", limit))
